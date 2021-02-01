@@ -21,7 +21,7 @@
 	<key>CFBundleSignature</key>
 	<string>????</string>
 	<key>CFBundleVersion</key>
-	<string>5129</string>
+	<string>5613</string>
 	<key>Fabric</key>
 	<dict>
 		<key>APIKey</key>
@@ -64,7 +64,7 @@
 	<key>NSMicrophoneUsageDescription</key>
 	<string>Some Hammerspoon extensions (such as hs.noises) require access to the microphone.</string>
 	<key>NSPrincipalClass</key>
-	<string>NSApplication</string>
+	<string>SentryCrashExceptionApplication</string>
 	<key>NSServices</key>
 	<array>
 		<dict>

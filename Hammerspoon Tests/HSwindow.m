@@ -8,11 +8,11 @@
 
 #import "HSTestCase.h"
 
-@interface HSwindow : HSTestCase
+@interface HSwindowTests : HSTestCase
 
 @end
 
-@implementation HSwindow
+@implementation HSwindowTests
 
 - (void)setUp {
     [super setUpWithRequire:@"test_window"];
@@ -44,6 +44,7 @@
 }
 
 - (void)testSnapshots {
+    SKIP_IN_TRAVIS() // Added by @latenitefilms
     RUN_LUA_TEST()
 }
 
@@ -60,6 +61,7 @@
 }
 
 - (void)testSize {
+    SKIP_IN_TRAVIS() // Added by @latenitefilms
     RUN_LUA_TEST()
 }
 

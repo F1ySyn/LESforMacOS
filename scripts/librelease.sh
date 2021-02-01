@@ -20,8 +20,8 @@ function assert() {
   assert_github_release_token && GITHUB_TOKEN="$(cat "${GITHUB_TOKEN_FILE}")"
   assert_codesign_authority_token && CODESIGN_AUTHORITY_TOKEN="$(cat "${CODESIGN_AUTHORITY_TOKEN_FILE}")"
   assert_notarization_token && source "${NOTARIZATION_TOKEN_FILE}"
-  # shellcheck source=../token-crashlytics disable=SC1091
-  assert_fabric_token && source "${FABRIC_TOKEN_FILE}"
+  # shellcheck source=../token-sentry disable=SC1091
+  assert_sentry_token && source "${SENTRY_TOKEN_FILE}"
   assert_version_in_xcode
   assert_version_in_git_tags
   assert_version_not_in_github_releases
@@ -141,10 +141,10 @@ function assert_notarization_token() {
   fi
 }
 
-function assert_fabric_token() {
-  echo "Checking for Fabric API tokens..."
-  if [ ! -f "${FABRIC_TOKEN_FILE}" ]; then
-    fail "You do not have Fabric API tokens in ${FABRIC_TOKEN_FILE}"
+function assert_sentry_token() {
+  echo "Checking for Sentry API tokens..."
+  if [ ! -f "${SENTRY_TOKEN_FILE}" ]; then
+    fail "You do not have Sentry API tokens in ${SENTRY_TOKEN_FILE}"
   fi
 }
 
@@ -228,7 +228,7 @@ function assert_valid_code_signing_entity() {
   local SIGNER
   SIGNER=$(codesign --display --verbose=4 "${HAMMERSPOON_HOME}/build/Hammerspoon.app" 2>&1 | grep ^Authority | head -1)
   if [ "$SIGNER" != "$CODESIGN_AUTHORITY_TOKEN" ]; then
-      fail "App is signed with the wrong key: $SIGNER"
+      fail "App is signed with the wrong key: $SIGNER (expecting $CODESIGN_AUTHORITY_TOKEN)"
       exit 1
   fi
 }
@@ -381,12 +381,20 @@ function archive_dSYMs() {
 }
 
 function upload_dSYMs() {
-  echo "Uploading .dSYM files to Fabric..."
+  echo "Uploading .dSYM files to Sentry..."
   pushd "${HAMMERSPOON_HOME}/../" >/dev/null
   if [ ! -d "archive/${VERSION}/dSYM" ]; then
-    echo "ERROR: dSYM archive does not exist yet, can't upload it to Fabric. You need to fix this"
+    echo "ERROR: dSYM archive does not exist yet, can't upload it to Sentry. You need to fix this"
   else
-    "${HAMMERSPOON_HOME}/Pods/Fabric/upload-symbols" -p mac -a "${CRASHLYTICS_API_KEY}" "archive/${VERSION}/dSYM/" >"archive/${VERSION}/dSYM-upload.log" 2>&1
+    export SENTRY_ORG=hammerspoon
+    export SENTRY_PROJECT=hammerspoon
+    export SENTRY_LOG_LEVEL=debug
+    export SENTRY_AUTH_TOKEN
+    cd "${HAMMERSPOON_HOME}"
+    "${HAMMERSPOON_HOME}/scripts/sentry-cli" releases new -p hammerspoon ${VERSION}
+    "${HAMMERSPOON_HOME}/scripts/sentry-cli" releases set-commits --auto "${VERSION}"
+    "${HAMMERSPOON_HOME}/scripts/sentry-cli" upload-dif "archive/${VERSION}/dSYM/" >"archive/${VERSION}/dSYM-upload.log" 2>&1
+    "${HAMMERSPOON_HOME}/scripts/sentry-cli" releases finalize "${VERSION}"
   fi
   popd >/dev/null
 }
@@ -448,7 +456,7 @@ function release_submit_dash_docs() {
       "archive": "Hammerspoon.tgz",
       "author": {
           "name": "Hammerspoon Team",
-          "link": "http://www.hammerspoon.org/"
+          "link": "https://www.hammerspoon.org/"
       },
       "aliases": [],
 
@@ -472,7 +480,7 @@ function release_update_appcast() {
         <item>
             <title>Version ${VERSION}</title>
             <sparkle:releaseNotesLink>
-                http://www.hammerspoon.org/releasenotes/${VERSION}.html
+                https://www.hammerspoon.org/releasenotes/${VERSION}.html
             </sparkle:releaseNotesLink>
             <pubDate>$(date +"%a, %e %b %Y %H:%M:%S %z")</pubDate>
             <enclosure url=\"https://github.com/Hammerspoon/hammerspoon/releases/download/${VERSION}/Hammerspoon-${VERSION}.zip\"
@@ -496,7 +504,7 @@ function release_tweet() {
   local CURRENT
   CURRENT=$(t accounts | grep -B1 active | head -1)
   t set active hammerspoon1
-  t update "Just released ${VERSION} - http://www.hammerspoon.org/releasenotes/"
+  t update "Just released ${VERSION} - https://www.hammerspoon.org/releasenotes/"
   t set active "$CURRENT"
 }
 
