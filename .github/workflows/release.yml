@@ -7,7 +7,7 @@ on:
 
 jobs:
   build:
-    runs-on: macOS-11.0
+    runs-on: macOS-10.15
     env:
       DEVELOPER_DIR: /Applications/Xcode_12.4.app/Contents/Developer
     steps:
@@ -17,11 +17,11 @@ jobs:
           submodules: 'recursive'
       - name: Attempt to build the Live Enhancement Suite for macOS
         run: |
-          xcodebuild -workspace Hammerspoon.xcworkspace -scheme Release
+          make
       - name: Copy Hammerspoon binary to root for disk image packaging
         run: |
           mkdir release
-          cp -Rv /Users/runner/Library/Developer/Xcode/DerivedData/*/Build/Products/Release/*.app/ ./Live\ Enhancement\ Suite.app/
+          cp -Rv ./build/*.app/ ./Live\ Enhancement\ Suite.app/
       - name: Set up environment for disk image creation
         uses: actions/setup-node@v1
         with:
