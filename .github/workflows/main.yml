@@ -6,7 +6,7 @@ jobs:
   build:
     runs-on: macOS-10.15
     env:
-      DEVELOPER_DIR: /Applications/Xcode_11.2.app/Contents/Developer
+      DEVELOPER_DIR: /Applications/Xcode_11.5.app/Contents/Developer
     steps:
       - name: Cloning Git repository
         uses: actions/checkout@v1
@@ -14,5 +14,4 @@ jobs:
           submodules: 'recursive'
       - name: Attempt to build the Live Enhancement Suite for macOS
         run: |
-          export XCODE_ARGS="build build-for-testing GCC_INSTRUMENT_PROGRAM_FLOW_ARCS=YES"
-          xcodebuild -workspace Hammerspoon.xcworkspace -scheme Release ${XCODE_ARGS}
+          xcodebuild -workspace Hammerspoon.xcworkspace -scheme Release
